@@ -4,12 +4,13 @@ import OpenGL.GLU as glu
 import OpenGL.GLUT as glut
 import numpy as np
 import random
+import sys
 from OpenGL.arrays import vbo
 
 # Global vars
-controller      = None
+controller = None
 res = 800
-n = 10
+n = 1
 r_nth = 0
 g_nth = 0
 b_nth = 0
@@ -18,23 +19,33 @@ g = 1
 b = 1
 mode = "u"
 isolines = 0
-
-# Shaders
-vertex_shader = open("vertex.c", "r").read()
-fragment_shader = open("fragment.c", "r").read().replace("?", str(n))
+metric_list = ["manhattan",
+               "canberra",
+               "chebyshev",
+               "euclidean",
+               "third_power",
+               "forth_power",
+               "half_power",
+               "negative_power",
+               "knights",
+               "iron_cross",
+               "octagon",
+               "mod_euclidean",
+               "mod_octagon",
+               "mod_manhattan"]
 
 class Controller():
-    def __init__(self, w, h):
+    def __init__(self, w, h, vertex_shader, fragment_shader):
         self.width = w
         self.height = h
         self.shader = None
-        self._init()
+        self._init(vertex_shader, fragment_shader)
         nodes = []
         for i in range(n):
             nodes.append((random.uniform(0,1), random.uniform(0,1)))
         self.nodes = np.asarray(nodes, dtype=np.float32)
         
-    def _init(self):
+    def _init(self, vertex_shader, fragment_shader):
         global shader
 
         # shader setup
@@ -98,6 +109,30 @@ class Controller():
             
         gl.glFlush()
 
+def parse_arg():
+    if len(sys.argv) == 2 and sys.argv[1] in ["list", "-h", "help"]:
+        print("Possible distance metrics:")
+        for m in metric_list:
+            print(m)
+        exit()
+    elif len(sys.argv) > 3 or len(sys.argv) <= 2:
+        print("Error: Invalid number of arguments.")
+        print("Syntax: python {} <# of nodes > [list | help | -h | <distance metric>]".format(sys.argv[0]))
+        exit()
+    else:
+        try:
+            global n
+            n = int(sys.argv[1])
+        except ValueError:
+            print("Error: First arg must be an integer.")
+            exit()
+        arg = sys.argv[2]
+        if arg not in metric_list:
+            print("Error: Invalid distance metric specified.")
+            exit()
+        else:
+            return arg
+        
 def idle_cb():
     global controller
     glut.glutPostRedisplay()
@@ -203,18 +238,23 @@ def keyboard_cb(key, x, y):
           isolines = 0
 
 if __name__ == "__main__":
+    # Shaders
+    metric = parse_arg()
+    vertex_shader = open("vertex.c", "r").read()
+    fragment_shader = open("fragment.c", "r").read().replace("?", str(n))
+    fragment_shader = fragment_shader.replace("METRIC_FUNC", metric)
     # Initialize GLUT library
     glut.glutInit()
 
     glut.glutInitWindowSize(res, res)
     glut.glutInitWindowPosition(0, 0)
     glut.glutInitDisplayMode(glut.GLUT_SINGLE | glut.GLUT_RGB)
-    glut.glutCreateWindow("test")
+    glut.glutCreateWindow("Cellular Noise")
     
     glut.glutIdleFunc(idle_cb)
     glut.glutDisplayFunc(display_cb)
     glut.glutKeyboardFunc(keyboard_cb)
 
-    controller = Controller(res, res)
+    controller = Controller(res, res, vertex_shader, fragment_shader)
 
     glut.glutMainLoop()

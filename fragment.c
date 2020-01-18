@@ -102,11 +102,15 @@ float mod_octagon(vec2 p1, vec2 p2){
   return mod(int(octagon(p1, p2) * res), 500 )/res;
 }
 
+float mod_manhattan(vec2 p1, vec2 p2){
+  return mod(int(octagon(p1, p2) * res), 500 )/res;
+}
+
 void main(){
   float d;
   float m[3] = float[3](FLT_MAX, FLT_MAX, FLT_MAX);
   for(int i = 0; i < ?; i++){
-    d = mod_octagon(gl_FragCoord.xy/res, node[i]);
+    d = METRIC_FUNC(gl_FragCoord.xy/res, node[i]);
     if(d < m[0]){
       m[2] = m[1];
       m[1] = m[0];
