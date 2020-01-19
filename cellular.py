@@ -6,10 +6,13 @@ import numpy as np
 import random
 import sys
 from OpenGL.arrays import vbo
+from PIL import Image
+from PIL import ImageOps
+from datetime import datetime
 
 # Global vars
 controller = None
-res = 800
+res = 650
 n = 1
 r_nth = 0
 g_nth = 0
@@ -19,6 +22,7 @@ g = 1
 b = 1
 mode = "u"
 isolines = 0
+metric = ""
 metric_list = ["manhattan",
                "canberra",
                "chebyshev",
@@ -152,6 +156,7 @@ def keyboard_cb(key, x, y):
     global b_nth
     global isolines
     global mode
+    global metric
     #^C or q to quit
     if key == b'\x03' or key == b'q':
         exit()
@@ -236,6 +241,15 @@ def keyboard_cb(key, x, y):
           isolines = 1
       else:
           isolines = 0
+    #Save to png
+    if key == b's':
+        now = datetime. now()
+        time = now.strftime("%H-%M-%S")
+        print("Saving image as {}--{}.png".format(metric, time))
+        gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+        data = gl.glReadPixels(0, 0, res, res, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
+        image = Image.frombytes("RGBA", (res, res), data)
+        image.save("{}--{}.png".format(metric, time), "PNG")
 
 if __name__ == "__main__":
     # Shaders
