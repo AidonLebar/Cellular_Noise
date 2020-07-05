@@ -103,7 +103,7 @@ float mod_octagon(vec2 p1, vec2 p2){
 }
 
 float mod_manhattan(vec2 p1, vec2 p2){
-  return mod(int(octagon(p1, p2) * res), 500 )/res;
+  return mod(int(manhattan(p1, p2) * res), 500 )/res;
 }
 
 void main(){
